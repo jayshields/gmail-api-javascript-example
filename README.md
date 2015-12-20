@@ -1,4 +1,4 @@
-# gmail-api-javascript-example
+# Mastering Your Inbox with the Gmail JavaScript API
 
 Example of how to use the Gmail API in JavaScript. Written as a companion to a SitePoint article ([Mastering Your Inbox with the Gmail JavaScript API](http://www.sitepoint.com/mastering-your-inbox-with-gmail-javascript-api/)).
 
