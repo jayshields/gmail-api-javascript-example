@@ -19,6 +19,8 @@
   <body>
     <div class="container">
       <h1>Gmail API demo</h1>
+      
+      <a href="#compose-modal" data-toggle="modal" id="compose-button" class="btn btn-primary pull-right hidden">Compose</a>
 
       <button id="authorize-button" class="btn btn-primary hidden">Authorize</button>
 
@@ -33,6 +35,38 @@
         <tbody></tbody>
       </table>
     </div>
+    
+    <div class="modal fade" id="compose-modal" tabindex="-1" role="dialog">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+            <h4 class="modal-title">Compose</h4>
+          </div>
+          <form onsubmit="return sendEmail();">
+            <div class="modal-body">
+              <div class="form-group">
+                <input type="email" class="form-control" id="compose-to" placeholder="To" required />
+              </div>
+
+              <div class="form-group">
+                <input type="text" class="form-control" id="compose-subject" placeholder="Subject" required />
+              </div>
+
+              <div class="form-group">
+                <textarea class="form-control" id="compose-message" placeholder="Message" rows="10">Hello!</textarea>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+              <button type="submit" id="send-button" class="btn btn-primary">Send</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
 
     <script src="//code.jquery.com/jquery-1.11.3.min.js"></script>
     <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
@@ -40,7 +74,9 @@
     <script type="text/javascript">
       var clientId = 'xxxxxxxxxxxx-xxxxxxxxxxxxxxxxxxxxxxx.apps.googleusercontent.com';
       var apiKey = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
-      var scopes = 'https://www.googleapis.com/auth/gmail.readonly';
+      var scopes = 
+        'https://www.googleapis.com/auth/gmail.readonly '+
+        'https://www.googleapis.com/auth/gmail.send';
 
       function handleClientLoad() {
         gapi.client.setApiKey(apiKey);
@@ -69,6 +105,7 @@
           loadGmailApi();
           $('#authorize-button').remove();
           $('.table-inbox').removeClass("hidden");
+          $('#compose-button').removeClass("hidden");
         } else {
           $('#authorize-button').removeClass("hidden");
           $('#authorize-button').on('click', function(){
@@ -142,6 +179,43 @@
           var ifrm = $('#message-iframe-'+message.id)[0].contentWindow.document;
           $('body', ifrm).html(getBody(message.payload));
         });
+      }
+      
+      function sendEmail()
+      {
+        $('#send-button').addClass('disabled');
+        
+        var to = $('#compose-to').val();
+        var subject = $('#compose-subject').val();
+        var message = $('#compose-message').val();
+        
+        var email = 
+          "Subject: "+subject+"\r\n"+
+          "To: "+to+"\r\n"+
+          "\r\n"+
+          message;
+        
+        var sendRequest = gapi.client.gmail.users.messages.send({
+          'userId': 'me',
+          'resource': {
+            'raw': window.btoa(email)
+          }
+        });
+        
+        sendRequest.execute(messageSent);
+        
+        return false;
+      }
+      
+      function messageSent()
+      {
+        $('#compose-modal').modal('hide');
+        
+        $('#compose-to').val('');
+        $('#compose-subject').val('');
+        $('#compose-message').val('');
+        
+        $('#send-button').removeClass('disabled');
       }
 
       function getHeader(headers, index) {
