@@ -56,7 +56,7 @@
               </div>
 
               <div class="form-group">
-                <textarea class="form-control" id="compose-message" placeholder="Message" rows="10"></textarea>
+                <textarea class="form-control" id="compose-message" placeholder="Message" rows="10" required></textarea>
               </div>
             </div>
             <div class="modal-footer">
@@ -78,7 +78,7 @@
             <h4 class="modal-title">Reply</h4>
           </div>
           <form onsubmit="return sendReply();">
-            <input type="hidden" id="reply-message-id" value="" />
+            <input type="hidden" id="reply-message-id" />
             
             <div class="modal-body">
               <div class="form-group">
@@ -90,7 +90,7 @@
               </div>
 
               <div class="form-group">
-                <textarea class="form-control" id="reply-message" placeholder="Message" rows="10"></textarea>
+                <textarea class="form-control" id="reply-message" placeholder="Message" rows="10" required></textarea>
               </div>
             </div>
             <div class="modal-footer">
@@ -235,16 +235,12 @@
       {
         $('#send-button').addClass('disabled');
         
-        var to = $('#compose-to').val();
-        var subject = $('#compose-subject').val();
-        var message = $('#compose-message').val();
-        
         sendMessage(
           {
-            'To': to, 
-            'Subject': subject
+            'To': $('#compose-to').val(), 
+            'Subject': $('#compose-subject').val()
           }, 
-          message, 
+          $('#compose-message').val(), 
           composeTidy
         );
         
@@ -266,18 +262,13 @@
       {
         $('#reply-button').addClass('disabled');
         
-        var message_id = $('#reply-message-id').val();
-        var to = $('#reply-to').val();
-        var subject = $('#reply-subject').val();
-        var message = $('#reply-message').val();
-        
         sendMessage(
           {
-            'To': to, 
-            'Subject': subject,
-            'In-Reply-To': message_id
+            'To': $('#reply-to').val(), 
+            'Subject': $('#reply-subject').val(),
+            'In-Reply-To': $('#reply-message-id').val()
           }, 
-          message, 
+          $('#reply-message').val(), 
           replyTidy
         );
         
