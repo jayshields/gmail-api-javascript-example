@@ -56,12 +56,46 @@
               </div>
 
               <div class="form-group">
-                <textarea class="form-control" id="compose-message" placeholder="Message" rows="10">Hello!</textarea>
+                <textarea class="form-control" id="compose-message" placeholder="Message" rows="10"></textarea>
               </div>
             </div>
             <div class="modal-footer">
               <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
               <button type="submit" id="send-button" class="btn btn-primary">Send</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+    
+    <div class="modal fade" id="reply-modal" tabindex="-1" role="dialog">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+            <h4 class="modal-title">Reply</h4>
+          </div>
+          <form onsubmit="return sendReply();">
+            <input type="hidden" id="reply-message-id" value="" />
+            
+            <div class="modal-body">
+              <div class="form-group">
+                <input type="text" class="form-control" id="reply-to" disabled />
+              </div>
+
+              <div class="form-group">
+                <input type="text" class="form-control disabled" id="reply-subject" disabled />
+              </div>
+
+              <div class="form-group">
+                <textarea class="form-control" id="reply-message" placeholder="Message" rows="10"></textarea>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+              <button type="submit" id="reply-button" class="btn btn-primary">Send</button>
             </div>
           </form>
         </div>
@@ -151,6 +185,12 @@
           </tr>'
         );
 
+        var reply_to = (getHeader(message.payload.headers, 'Reply-to') !== '' ? 
+          getHeader(message.payload.headers, 'Reply-to') : 
+          getHeader(message.payload.headers, 'From')).replace(/\"/g, '&quot;');
+  
+        var reply_subject = 'Re: '+getHeader(message.payload.headers, 'Subject').replace(/\"/g, '&quot;');
+
         $('body').append(
           '<div class="modal fade" id="message-modal-' + message.id +
               '" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">\
@@ -169,6 +209,16 @@
                 <div class="modal-body">\
                   <iframe id="message-iframe-'+message.id+'" srcdoc="<p>Loading...</p>">\
                   </iframe>\
+                </div>\
+                <div class="modal-footer">\
+                  <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>\
+                  <button type="button" class="btn btn-primary reply-button" data-dismiss="modal" data-toggle="modal" data-target="#reply-modal"\
+                  onclick="fillInReply(\
+                    \''+reply_to+'\', \
+                    \''+reply_subject+'\', \
+                    \''+getHeader(message.payload.headers, 'Message-ID')+'\'\
+                    );"\
+                  >Reply</button>\
                 </div>\
               </div>\
             </div>\
@@ -189,25 +239,19 @@
         var subject = $('#compose-subject').val();
         var message = $('#compose-message').val();
         
-        var email = 
-          "Subject: "+subject+"\r\n"+
-          "To: "+to+"\r\n"+
-          "\r\n"+
-          message;
-        
-        var sendRequest = gapi.client.gmail.users.messages.send({
-          'userId': 'me',
-          'resource': {
-            'raw': window.btoa(email)
-          }
-        });
-        
-        sendRequest.execute(messageSent);
+        sendMessage(
+          {
+            'To': to, 
+            'Subject': subject
+          }, 
+          message, 
+          composeTidy
+        );
         
         return false;
       }
       
-      function messageSent()
+      function composeTidy()
       {
         $('#compose-modal').modal('hide');
         
@@ -217,12 +261,71 @@
         
         $('#send-button').removeClass('disabled');
       }
+      
+      function sendReply()
+      {
+        $('#reply-button').addClass('disabled');
+        
+        var message_id = $('#reply-message-id').val();
+        var to = $('#reply-to').val();
+        var subject = $('#reply-subject').val();
+        var message = $('#reply-message').val();
+        
+        sendMessage(
+          {
+            'To': to, 
+            'Subject': subject,
+            'In-Reply-To': message_id
+          }, 
+          message, 
+          replyTidy
+        );
+        
+        return false;
+      }
+      
+      function replyTidy()
+      {
+        $('#reply-modal').modal('hide');
+        
+        $('#reply-message').val('');
+        
+        $('#reply-button').removeClass('disabled');
+      }
+      
+      function fillInReply(to, subject, message_id)
+      {
+        $('#reply-to').val(to);
+        $('#reply-subject').val(subject);
+        $('#reply-message-id').val(message_id);
+      }
+      
+      function sendMessage(headers_obj, message, callback)
+      {
+        var email = '';
+        
+        for(var header in headers_obj)
+          email += header += ": "+headers_obj[header]+"\r\n";
+        
+        email += "\r\n" + message;
+        
+        var sendRequest = gapi.client.gmail.users.messages.send({
+          'userId': 'me',
+          'resource': {
+            'raw': window.btoa(email).replace(/\+/g, '-').replace(/\//g, '_')
+          }
+        });
+        
+        sendRequest.execute(callback);
+        
+        return true;
+      }
 
       function getHeader(headers, index) {
         var header = '';
 
         $.each(headers, function(){
-          if(this.name === index){
+          if(this.name.toLowerCase() === index.toLowerCase()){
             header = this.value;
           }
         });
