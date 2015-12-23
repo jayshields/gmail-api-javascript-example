@@ -307,9 +307,7 @@
           }
         });
         
-        sendRequest.execute(callback);
-        
-        return true;
+        return sendRequest.execute(callback);
       }
 
       function getHeader(headers, index) {
