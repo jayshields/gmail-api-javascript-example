@@ -1,9 +1,21 @@
-# Mastering Your Inbox with the Gmail JavaScript API
+# Working with the Gmail JavaScript API
 
-Example of how to use the Gmail API in JavaScript.
-Code to accompany the following article: http://www.sitepoint.com/mastering-your-inbox-with-gmail-javascript-api/
+Repository of code samples to accompany a series of articles on working with GMail's JavaScript API.
 
-## Features
+## 01 — Mastering Your Inbox with the Gmail JavaScript API
+
+URL: http://www.sitepoint.com/mastering-your-inbox-with-gmail-javascript-api/
+
+### Features
 
 - Display summary of last 10 messages received by the user
 - Open a modal to view a specific email
+
+## 02 — Sending Emails with the Gmail JavaScript API
+
+URL: http://www.sitepoint.com/sending-emails-gmail-javascript-api/
+
+### Features
+
+- Allow the composition of new messages
+- Allow replying to specific messages
